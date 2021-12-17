@@ -42,8 +42,7 @@ _|_|_|_|    _|_|      _|_|_|      _|    _|_|_|    _|    _|    _|_|_|  _|  _|    
                       _|_|
 
  > Running Log4shell Framework & Check-Toolkit on shell v0.1a (C) 2021 suuhm
-
-Wrong input! Please enter one of these options:
+ 
 
 Usage: ./l4s4s.sh [OPTIONS] <IP:PORT|COMMAND>
 
@@ -57,3 +56,7 @@ Usage: ./l4s4s.sh [OPTIONS] <IP:PORT|COMMAND>
 ```
 
 ### This script is alpha! So please let me know if you have some issues
+
+### Legal Disclaimer
+
+The project log4shell4shell is made for educational and ethical testing purposes only. Usage of log4j-scan for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program.
