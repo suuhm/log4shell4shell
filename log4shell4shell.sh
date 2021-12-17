@@ -1,16 +1,15 @@
 #!/bin/bash
 
-# Log4j script - CVE-2021-44228
+# Log4j multitool-script - CVE-2021-44228
 #
 # Software list: https://github.com/cisagov/log4j-affected-db
 #
 # PoC _ https://github.com/christophetd/log4shell-vulnerable-app
 #
-
-# - log4j2.noFormatMsgLookup = true
+# log4j2.noFormatMsgLookup = true
 # JVM -> Log4j update : 2.15 -> 2.16
-
-# $0 [options] [exploit-ip-server] [command]
+#
+# $0 [options] [command] [exploit-ip-server]
 
 #                                                                                                                              
 #_|                            _|  _|              _|                  _|  _|  _|  _|              _|                  _|  _|  
@@ -19,16 +18,13 @@
 #_|        _|    _|  _|    _|      _|        _|_|  _|    _|  _|        _|  _|      _|        _|_|  _|    _|  _|        _|  _|  
 #_|_|_|_|    _|_|      _|_|_|      _|    _|_|_|    _|    _|    _|_|_|  _|  _|      _|    _|_|_|    _|    _|    _|_|_|  _|  _|  
 #                          _|                                                                                                  
-#                      _|_|                                                                                                    
+#                      _|_|     
+#
 # > Running Log4shell Framework & Check-Toolkit on shell v0.1a (C) 2021 suuhm
 
 
 MY_IP=$(ip addr show dev eth0 | grep inet | sed -r 's/.*\ ([0-9].*\.*\/..).*/\1/g')
 XPL_IP=$MY_IP
-
-# On Remote host for testing set $2
-#XPL_IP=$2
-
 
 _url_encoder() {
 
@@ -62,13 +58,13 @@ _check_lnx() {
 
 	find / -name "*log4j*" 2>&1 \
 	| grep -v '^find:.* Permission denied$' \
-    | grep -v '^find:.* No such file or directory$'
+    	| grep -v '^find:.* No such file or directory$'
 
-    echo -e "\n\nGet installed log4j Packages:"  
-    sh -c 'dpkg -l | grep -E "*log4j"' 2> /dev/null
-    sh -c 'rpm -qpl *.rpm | grep -E "*log4j"' 2> /dev/null
+    	echo -e "\n\nGet installed log4j Packages:"  
+    	sh -c 'dpkg -l | grep -E "*log4j"' 2> /dev/null
+    	sh -c 'rpm -qpl *.rpm | grep -E "*log4j"' 2> /dev/null
 
-    sleep 2
+    	sleep 2
 	echo -e "\nMore intense check? Extern check on: https://github.com/rubo77/log4j_checker_beta"
 	echo -n "Input: (y/n): " ; read -r yn
 
@@ -88,12 +84,12 @@ _fix_lnx() {
 	echo "This fix will delete Class from: "
 	find /var /etc /usr /opt /lib* -name "*log4j-core-*" 2>&1 \
 	| grep -v '^find:.* Permission denied$' \
-    | grep -v '^find:.* No such file or directory$'
+    	| grep -v '^find:.* No such file or directory$'
 
-    echo
-    echo -n "Enter full path to the jar file and press Enter: " ; read -r yn
-    # /$(dirname $JARF)/$(basename $JARF)-backup
-    cp -a $JARF $JARF"-backup"
+    	echo
+    	echo -n "Enter full path to the jar file and press Enter: " ; read -r yn
+    	# /$(dirname $JARF)/$(basename $JARF)-backup
+    	cp -a $JARF $JARF"-backup"
 	zip -q -d $JARF org/apache/logging/log4j/core/lookup/JndiLookup.class
 
 	echo -e "\nDone!" 
@@ -184,15 +180,16 @@ _get_python_scan() {
 
 
 # MAIN()
-echo -e "         																														                                                          "                                                                                                                     
-echo -e "_|                            _|  _|              _|                  _|  _|  _|  _|              _|                  _|  _|	  "  
+echo -e "         															"                                                                                                                     
+echo -e "_|                            _|  _|              _|                  _|  _|  _|  _|              _|                  _|  _|	"  
 echo -e "_|          _|_|      _|_|_|  _|  _|      _|_|_|  _|_|_|      _|_|    _|  _|  _|  _|      _|_|_|  _|_|_|      _|_|    _|  _|  	"	
 echo -e "_|        _|    _|  _|    _|  _|_|_|_|  _|_|      _|    _|  _|_|_|_|  _|  _|  _|_|_|_|  _|_|      _|    _|  _|_|_|_|  _|  _|  	"
 echo -e "_|        _|    _|  _|    _|      _|        _|_|  _|    _|  _|        _|  _|      _|        _|_|  _|    _|  _|        _|  _|  	"
 echo -e "_|_|_|_|    _|_|      _|_|_|      _|    _|_|_|    _|    _|    _|_|_|  _|  _|      _|    _|_|_|    _|    _|    _|_|_|  _|  _|  	"
 echo -e "                          _|                                                                                                  	"
 echo -e "                      _|_|                                                                                                    	"
-echo -e "\n > Running Log4shell Framework & Check-Toolkit on shell v0.1a (C) 2021 suuhm													                        "
+
+echo -e "\n > Running Log4shell Framework & Check-Toolkit on shell v0.1a (C) 2021 suuhm							"
 echo
 
 if [ "$1" == "--get-powershell-finder" ]; then
