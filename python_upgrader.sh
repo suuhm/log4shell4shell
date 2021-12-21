@@ -10,7 +10,7 @@ if [ -z $VERS ]; then
   exit 1
 fi
 
-if [ "$1" == "--list-versions"]; then
+if [ "$1" == "--list-versions" ]; then
   echo -e "List of actual python versions available:\n"
   curl -sL https://www.python.org/downloads/ | grep -E "Python\ [1-3]\.[0-9].[0.9]" | sed -r 's/.*\ ([0-9].*[0-9]).*/\1/g'
   exit 0
