@@ -16,10 +16,10 @@ Log4j - Multitool. Find &amp; fix possible CVE-2021-44228 vulneraries - provides
 ### Requirements:
 
 - https://docs.docker.com/get-docker/
-- Debian / Ubuntu: ```apt update ; apt install default-jre screen python3 pip bash curl```
-- OpenSuse: ```zypper ref ; zypper in default-jre screen python3 pip bash curl```
-- Redhead-Linux / CentOS: ```yum clean; yum install default-jre screen python3 pip bash curl```
-- BSD pkg: ```pkg install default-jre screen python3 pip curl```
+- Debian / Ubuntu: ```apt update ; apt install default-jre screen python3-pip bash curl```
+- OpenSuse: ```zypper ref ; zypper in default-jre screen python3-pip bash curl```
+- Redhead-Linux / CentOS: ```yum clean; yum install default-jre screen python3-pip bash curl```
+- BSD pkg: ```pkg install default-jre screen python3-pip curl```
 - Mac OS (Brew): ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ; brew install default-jre screen python3 pip```
 
 ### Quick check your system with this oneliner:
