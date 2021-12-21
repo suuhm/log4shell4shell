@@ -20,8 +20,7 @@ apt update && apt install -y make build-essential libssl-dev zlib1g-dev libbz2-d
 libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
 xz-utils tk-dev libffi-dev liblzma-dev
 
-echo && sleep 3
-echo
+echo && sleep 3 && echo -e "Compile:\n"
 
 wget https://www.python.org/ftp/python/$VERS/Python-$VERS.tgz
 tar xvf Python-$VERS.tgz
@@ -29,9 +28,7 @@ cd Python-$VERS
 ./configure --enable-optimizations --enable-shared --with-ensurepip=install
 make -j8 && make altinstall
 
-echo && sleep 2
-echo
-
+echo && sleep 2 && echo
 ldconfig
 
 echo "Optional Alternatives change:"
@@ -41,4 +38,5 @@ echo
 update-alternatives --config python
 
 echo -e "\nDONE! exit.."
+
 exit 0
