@@ -16,11 +16,11 @@ Log4j - Multitool. Find &amp; fix possible CVE-2021-44228 vulneraries - provides
 ### Requirements:
 
 - https://docs.docker.com/get-docker/
-- Debian / Ubuntu: ```apt update ; apt install java python3 pip bash curl```
-- OpenSuse: ```zypper ref ; zypper in java python3 pip bash curl```
-- Redhead-Linux / CentOS: ```yum clean; yum install java python3 pip bash curl```
-- BSD pkg: ```pkg install java python3 pip curl```
-- Mac OS (Brew): ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ; brew install java python3 pip curl```
+- Debian / Ubuntu: ```apt update ; apt install default-jre screen python3 pip bash curl```
+- OpenSuse: ```zypper ref ; zypper in default-jre screen python3 pip bash curl```
+- Redhead-Linux / CentOS: ```yum clean; yum install default-jre screen python3 pip bash curl```
+- BSD pkg: ```pkg install default-jre screen python3 pip curl```
+- Mac OS (Brew): ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ; brew install default-jre screen python3 pip```
 
 ### Quick check your system with this oneliner:
 
@@ -73,11 +73,11 @@ Usage: ./l4s4s.sh [OPTIONS] <IP:PORT|COMMAND>
 
 # How to Run on Windows x86 / x64:
 
-Just run in Powershell: ``` .\set_windows_fix.ps1 ```
+Just run in Powershell (admin-mode): ``` .\set_windows_fix.ps1 ```
 
 
-### This script is alpha! So please let me know if you have some issues
+# This script is alpha! So please let me know if you have some issues
 
-### Legal Disclaimer
+# Legal Disclaimer
 
 The project log4shell4shell is made for educational and ethical testing purposes only. Usage of log4j-scan for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program.
